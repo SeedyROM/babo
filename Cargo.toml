@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 gl = "0.14.0"
+image = "0.24.5"
 nalgebra = "0.32.1"
 sdl2 = "0.35.2"
 snafu = "0.7.4"
