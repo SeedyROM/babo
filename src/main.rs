@@ -15,6 +15,8 @@ fn main() {
 
     let texture = Texture::from_file("./assets/textures/awesome.png").unwrap();
 
+    let babo_texture = Texture::from_file("./assets/textures/babo.png").unwrap();
+
     let mut position = Vector3::new(0.0, 0.0, 1.0);
     let mut rotation = 0.0;
 
@@ -49,7 +51,13 @@ fn main() {
         big_boy_rotation -= 0.005;
 
         // Set the camera at the center of sprite.
-        camera.set_position(position.xy() + Vector2::new(128.0 / 2.0, 128.0 / 2.0));
+        camera.set_position(
+            position.xy()
+                + Vector2::new(
+                    babo_texture.width() as f32 / 2.0,
+                    babo_texture.height() as f32 / 2.0,
+                ),
+        );
 
         // Clear the screen.
         window.clear(f32::sin(rotation * std::f32::consts::PI * 2.0), 0.25, 0.25);
@@ -70,11 +78,11 @@ fn main() {
         // Render the big boy sprite with the camera.
         sprite_renderer
             .draw(
-                &texture,
+                &babo_texture,
                 &camera.projection(),
                 &camera.view(),
                 &position,
-                &Vector2::new(128.0, 128.0),
+                &Vector2::new(babo_texture.width() as f32, babo_texture.height() as f32),
                 rotation,
                 &Vector3::new(1.0, 1.0, 1.0),
             )
