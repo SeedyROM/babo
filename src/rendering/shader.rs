@@ -204,44 +204,48 @@ impl ShaderProgram {
     }
 }
 
-fn check_shader_error(shader: u32, flag: u32, is_program: bool) -> Result<(), String> {
+fn check_shader_error(
+    shader: u32,
+    flag: u32,
+    is_program: bool,
+) -> Result<(), Box<dyn std::error::Error>> {
     let mut success = 0;
     let mut len = 0;
 
     if is_program {
-        unsafe {
-            gl::GetProgramiv(shader, flag, &mut success);
-        }
+        gl!(GetProgramiv, shader, flag, &mut success)?;
     } else {
-        unsafe {
-            gl::GetShaderiv(shader, flag, &mut success);
-        }
+        gl!(GetShaderiv, shader, flag, &mut success)?;
     }
 
     if success == 0 {
         if is_program {
-            unsafe {
-                gl::GetProgramiv(shader, gl::INFO_LOG_LENGTH, &mut len);
-            }
+            gl!(GetProgramiv, shader, gl::INFO_LOG_LENGTH, &mut len)?;
         } else {
-            unsafe {
-                gl::GetShaderiv(shader, gl::INFO_LOG_LENGTH, &mut len);
-            }
+            gl!(GetShaderiv, shader, gl::INFO_LOG_LENGTH, &mut len)?;
         }
 
         let error = create_whitespace_cstring_with_len(len as usize);
 
         if is_program {
-            unsafe {
-                gl::GetProgramInfoLog(shader, len, std::ptr::null_mut(), error.as_ptr() as *mut _);
-            }
+            gl!(
+                GetProgramInfoLog,
+                shader,
+                len,
+                std::ptr::null_mut(),
+                error.as_ptr() as *mut _
+            )?;
         } else {
-            unsafe {
-                gl::GetShaderInfoLog(shader, len, std::ptr::null_mut(), error.as_ptr() as *mut _);
-            }
+            gl!(
+                GetShaderInfoLog,
+                shader,
+                len,
+                std::ptr::null_mut(),
+                error.as_ptr() as *mut _
+            )?;
         }
 
-        return Err(error.to_string_lossy().into_owned());
+        return Err(error.to_string_lossy().into_owned().into());
     }
 
     Ok(())
