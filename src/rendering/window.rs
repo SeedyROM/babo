@@ -1,6 +1,8 @@
 use sdl2::event::Event;
 use snafu::Snafu;
 
+use crate::gl_unchecked;
+
 #[derive(Debug, Snafu)]
 pub enum WindowError {
     #[snafu(display("Renderer error: {}", message))]
@@ -100,11 +102,9 @@ impl<'a> WindowTrait<'a> for Window {
     }
 
     fn clear(&mut self, r: f32, g: f32, b: f32) {
-        unsafe {
-            gl::ClearColor(r, g, b, 1.0);
-            gl::Clear(gl::COLOR_BUFFER_BIT);
-            gl::Clear(gl::DEPTH_BUFFER_BIT);
-        }
+        gl_unchecked!(ClearColor, r, g, b, 1.0);
+        gl_unchecked!(Clear, gl::COLOR_BUFFER_BIT);
+        gl_unchecked!(Clear, gl::DEPTH_BUFFER_BIT);
     }
 
     fn present(&mut self) {

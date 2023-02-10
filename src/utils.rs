@@ -41,14 +41,43 @@ macro_rules! gl {
         use $crate::utils::{GlError, gl_error_string};
 
         unsafe {
-            gl::$func($($arg)*);
-            let err = unsafe { gl::GetError() };
+            let result = gl::$func($($arg)*);
+            let err = gl::GetError();
             if err != gl::NO_ERROR {
                 let reason = gl_error_string(err);
                 Err(GlError { method: "$func".to_string(), code: err, message: reason.to_string() })
             } else {
-                Ok(())
+                Ok(result)
             }
+        }
+    }};
+    ( $func:tt ) => {{
+        use $crate::utils::{GlError, gl_error_string};
+
+        unsafe {
+            let result = gl::$func();
+            let err = gl::GetError();
+            if err != gl::NO_ERROR {
+                let reason = gl_error_string(err);
+                Err(GlError { method: "$func".to_string(), code: err, message: reason.to_string() })
+            } else {
+                Ok(result)
+            }
+        }
+    }};
+}
+
+#[macro_export]
+/// Call an OpenGL function and and don't check for errors.
+macro_rules! gl_unchecked {
+    ( $func:tt, $($arg:tt)* ) => {{
+        unsafe {
+            gl::$func($($arg)*)
+        }
+    }};
+    ( $func:tt ) => {{
+        unsafe {
+            gl::$func()
         }
     }};
 }

@@ -36,6 +36,26 @@ impl Into<u32> for ShaderType {
     }
 }
 
+pub struct ShaderSource<'a>(&'a str);
+
+impl<'a> ShaderSource<'a> {
+    pub fn into_inner(self) -> CString {
+        self.into()
+    }
+}
+
+impl<'a> From<&'a str> for ShaderSource<'a> {
+    fn from(source: &'a str) -> Self {
+        Self(source)
+    }
+}
+
+impl<'a> Into<CString> for ShaderSource<'a> {
+    fn into(self) -> CString {
+        CString::new(self.0).unwrap()
+    }
+}
+
 pub struct Shader {
     id: u32,
     kind: ShaderType,
@@ -43,33 +63,20 @@ pub struct Shader {
 }
 
 impl Shader {
-    pub fn from_source(kind: ShaderType, source: &str) -> Result<Self, String> {
-        let id = unsafe { gl::CreateShader(kind.into()) };
-        let c_str = CString::new(source.as_bytes()).unwrap();
-        unsafe {
-            gl::ShaderSource(id, 1, &c_str.as_ptr(), std::ptr::null());
-            gl::CompileShader(id);
-        }
+    pub fn from_source(kind: ShaderType, source: &str) -> Result<Self, Box<dyn std::error::Error>> {
+        let id = gl!(CreateShader, kind.into())?;
 
-        let mut success = 0;
-        unsafe {
-            gl::GetShaderiv(id, gl::COMPILE_STATUS, &mut success);
-        }
+        let shader_source = ShaderSource::from(source);
+        gl!(
+            ShaderSource,
+            id,
+            1,
+            &shader_source.into_inner().as_ptr(),
+            std::ptr::null()
+        );
+        gl!(CompileShader, id);
 
-        if success == 0 {
-            let mut len = 0;
-            unsafe {
-                gl::GetShaderiv(id, gl::INFO_LOG_LENGTH, &mut len);
-            }
-
-            let error = create_whitespace_cstring_with_len(len as usize);
-
-            unsafe {
-                gl::GetShaderInfoLog(id, len, std::ptr::null_mut(), error.as_ptr() as *mut _);
-            }
-
-            return Err(error.to_string_lossy().into_owned());
-        }
+        check_shader_error(id, gl::COMPILE_STATUS, false)?;
 
         Ok(Shader {
             id,
@@ -78,7 +85,10 @@ impl Shader {
         })
     }
 
-    pub fn from_file(kind: ShaderType, path: impl Into<PathBuf>) -> Result<Self, String> {
+    pub fn from_file(
+        kind: ShaderType,
+        path: impl Into<PathBuf>,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let path = path.into();
         let source = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
         let shader = Shader::from_source(kind, &source)?;
@@ -106,43 +116,19 @@ pub struct ShaderProgram {
 }
 
 impl ShaderProgram {
-    pub fn from_shaders(shaders: &[Shader]) -> Result<Self, String> {
-        let id = unsafe { gl::CreateProgram() };
+    pub fn from_shaders(shaders: &[Shader]) -> Result<Self, Box<dyn std::error::Error>> {
+        let id = gl!(CreateProgram)?;
 
         for shader in shaders {
-            unsafe {
-                gl::AttachShader(id, shader.id());
-            }
+            gl!(AttachShader, id, shader.id())?;
         }
 
-        unsafe {
-            gl::LinkProgram(id);
-        }
+        gl!(LinkProgram, id);
 
-        let mut success = 0;
-        unsafe {
-            gl::GetProgramiv(id, gl::LINK_STATUS, &mut success);
-        }
-
-        if success == 0 {
-            let mut len = 0;
-            unsafe {
-                gl::GetProgramiv(id, gl::INFO_LOG_LENGTH, &mut len);
-            }
-
-            let error = create_whitespace_cstring_with_len(len as usize);
-
-            unsafe {
-                gl::GetProgramInfoLog(id, len, std::ptr::null_mut(), error.as_ptr() as *mut _);
-            }
-
-            return Err(error.to_string_lossy().into_owned());
-        }
+        check_shader_error(id, gl::LINK_STATUS, true)?;
 
         for shader in shaders {
-            unsafe {
-                gl::DetachShader(id, shader.id());
-            }
+            gl!(DetachShader, id, shader.id())?;
         }
 
         Ok(ShaderProgram { id })
@@ -153,9 +139,7 @@ impl ShaderProgram {
     }
 
     pub fn use_program(&self) {
-        unsafe {
-            gl::UseProgram(self.id);
-        }
+        gl!(UseProgram, self.id);
     }
 
     pub fn set_uniform_1f(&self, name: &str, value: f32) -> Result<(), ShaderError> {
@@ -218,4 +202,47 @@ impl ShaderProgram {
 
         Ok(location)
     }
+}
+
+fn check_shader_error(shader: u32, flag: u32, is_program: bool) -> Result<(), String> {
+    let mut success = 0;
+    let mut len = 0;
+
+    if is_program {
+        unsafe {
+            gl::GetProgramiv(shader, flag, &mut success);
+        }
+    } else {
+        unsafe {
+            gl::GetShaderiv(shader, flag, &mut success);
+        }
+    }
+
+    if success == 0 {
+        if is_program {
+            unsafe {
+                gl::GetProgramiv(shader, gl::INFO_LOG_LENGTH, &mut len);
+            }
+        } else {
+            unsafe {
+                gl::GetShaderiv(shader, gl::INFO_LOG_LENGTH, &mut len);
+            }
+        }
+
+        let error = create_whitespace_cstring_with_len(len as usize);
+
+        if is_program {
+            unsafe {
+                gl::GetProgramInfoLog(shader, len, std::ptr::null_mut(), error.as_ptr() as *mut _);
+            }
+        } else {
+            unsafe {
+                gl::GetShaderInfoLog(shader, len, std::ptr::null_mut(), error.as_ptr() as *mut _);
+            }
+        }
+
+        return Err(error.to_string_lossy().into_owned());
+    }
+
+    Ok(())
 }

@@ -11,7 +11,7 @@ fn main() {
 
     let mut camera = Camera::new(1280.0, 720.0);
 
-    let sprite_renderer = SpriteRenderer::new();
+    let sprite_renderer = SpriteRenderer::new().unwrap();
 
     let texture = Texture::from_file("./assets/textures/awesome.png").unwrap();
 
@@ -55,26 +55,30 @@ fn main() {
         window.clear(f32::sin(rotation * std::f32::consts::PI * 2.0), 0.25, 0.25);
 
         // Render the sprite with the camera.
-        sprite_renderer.draw(
-            &texture,
-            &camera.projection(),
-            &camera.view(),
-            &big_boy_position,
-            &Vector2::new(720.0, 720.0),
-            big_boy_rotation,
-            &Vector3::new(1.0, 1.0, 1.0),
-        );
+        sprite_renderer
+            .draw(
+                &texture,
+                &camera.projection(),
+                &camera.view(),
+                &big_boy_position,
+                &Vector2::new(720.0, 720.0),
+                big_boy_rotation,
+                &Vector3::new(1.0, 1.0, 1.0),
+            )
+            .unwrap();
 
         // Render the big boy sprite with the camera.
-        sprite_renderer.draw(
-            &texture,
-            &camera.projection(),
-            &camera.view(),
-            &position,
-            &Vector2::new(128.0, 128.0),
-            rotation,
-            &Vector3::new(1.0, 1.0, 1.0),
-        );
+        sprite_renderer
+            .draw(
+                &texture,
+                &camera.projection(),
+                &camera.view(),
+                &position,
+                &Vector2::new(128.0, 128.0),
+                rotation,
+                &Vector3::new(1.0, 1.0, 1.0),
+            )
+            .unwrap();
 
         // Draw the screen.
         window.present();
