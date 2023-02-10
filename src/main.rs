@@ -1,7 +1,9 @@
 use nalgebra::{Vector2, Vector3};
 use sdl2::{event::Event, keyboard::Keycode};
 
-use rendering::{Camera, SpriteRenderer, SpriteRendererTrait, Texture, Window, WindowTrait};
+use rendering::{
+    Camera, SpriteRenderer, SpriteRendererTrait, Texture, TextureTrait, Window, WindowTrait,
+};
 
 mod rendering;
 mod utils;

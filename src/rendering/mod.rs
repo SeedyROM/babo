@@ -1,9 +1,11 @@
 pub mod camera;
 pub mod sprite_renderer;
+pub mod texture;
 pub mod window;
 
 pub use camera::*;
 pub use sprite_renderer::*;
+pub use texture::*;
 pub use window::*;
 
 // OpenGL renderering.
