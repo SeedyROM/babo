@@ -1,7 +1,7 @@
 use nalgebra::{Matrix4, Vector2, Vector3};
 
 use super::{Shader, ShaderProgram, ShaderType, Texture};
-use crate::gl;
+use crate::{gl, rendering::SpriteRendererTrait};
 
 static QUAD_VERTICES: [f32; 24] = [
     0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 1.0,
@@ -14,8 +14,10 @@ pub struct SpriteRenderer {
     _quad_vbo: u32,
 }
 
-impl SpriteRenderer {
-    pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
+impl SpriteRendererTrait for SpriteRenderer {
+    type Texture = Texture;
+
+    fn new() -> Result<Self, Box<dyn std::error::Error>> {
         // Create the shader program for the sprite renderer
         let shader = ShaderProgram::from_shaders(&[
             Shader::from_source(
@@ -81,7 +83,7 @@ impl SpriteRenderer {
         })
     }
 
-    pub fn draw(
+    fn draw(
         &self,
         texture: &Texture,
         projection: &Matrix4<f32>,
