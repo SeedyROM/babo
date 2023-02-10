@@ -1,12 +1,9 @@
 use nalgebra::{Vector2, Vector3};
 use sdl2::{event::Event, keyboard::Keycode};
 
-use rendering::{
+use babo::{
     Camera, SpriteRenderer, SpriteRendererTrait, Texture, TextureTrait, Window, WindowTrait,
 };
-
-mod rendering;
-mod utils;
 
 fn main() {
     let mut window = Window::new(1280, 720, "Babo Engine: v0.0.1").unwrap();
