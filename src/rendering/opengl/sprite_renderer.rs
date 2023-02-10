@@ -20,12 +20,12 @@ impl SpriteRenderer {
         let shader = ShaderProgram::from_shaders(&[
             Shader::from_source(
                 ShaderType::Vertex,
-                include_str!("../../assets/shaders/sprite.vert"),
+                include_str!("../../../assets/shaders/sprite.vert"),
             )
             .unwrap(),
             Shader::from_source(
                 ShaderType::Fragment,
-                include_str!("../../assets/shaders/sprite.frag"),
+                include_str!("../../../assets/shaders/sprite.frag"),
             )
             .unwrap(),
         ])
