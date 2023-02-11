@@ -68,8 +68,16 @@ impl Window {
 impl<'a> WindowTrait<'a> for Window {
     type Event = Event;
 
-    fn size(&self) -> (u32, u32) {
+    fn viewport(&self) -> (u32, u32) {
         (self.width, self.height)
+    }
+
+    fn width(&self) -> u32 {
+        self.width
+    }
+
+    fn height(&self) -> u32 {
+        self.height
     }
 
     fn set_title(&mut self, title: &str) {

@@ -2,6 +2,8 @@
 
 use nalgebra::{Matrix4, Orthographic3, Vector2, Vector3};
 
+use crate::WindowTrait;
+
 pub struct Camera {
     projection: Orthographic3<f32>,
     screen: Vector2<f32>,
@@ -68,5 +70,14 @@ impl Camera {
     pub fn set_screen(&mut self, width: f32, height: f32) {
         self.screen = Vector2::new(width, height);
         self.projection = Orthographic3::new(0.0, width, height, 0.0, -1.0, 1.0);
+    }
+}
+
+impl<'a, T> From<&T> for Camera
+where
+    T: WindowTrait<'a>,
+{
+    fn from(window: &T) -> Self {
+        Self::new(window.width() as f32, window.height() as f32)
     }
 }

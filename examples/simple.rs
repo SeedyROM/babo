@@ -8,7 +8,7 @@ use babo::{
 fn main() {
     let mut window = Window::new(1280, 720, "Babo Engine: v0.0.1").unwrap();
 
-    let mut camera = Camera::new(1280.0, 720.0);
+    let mut camera = Camera::from(&window);
 
     let sprite_renderer = SpriteRenderer::new().unwrap();
 
