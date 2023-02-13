@@ -18,6 +18,7 @@ pub struct Character {
     pub texture: Texture,
     pub bearing: Vector2<f32>,
     pub advance: f32,
+    pub origin_y: f32
 }
 
 impl TryFrom<&GlyphSlot> for Character {
@@ -39,11 +40,13 @@ impl TryFrom<&GlyphSlot> for Character {
         )?;
         let bearing = Vector2::new(slot.bitmap_left() as f32, slot.bitmap_top() as f32);
         let advance = slot.advance().x as f32;
+        let origin_y = slot.metrics().height as f32 / 64.0 - bearing.y;
 
         Ok(Self {
             texture,
             bearing,
             advance,
+            origin_y
         })
     }
 }
@@ -184,6 +187,7 @@ impl FontRenderer {
         gl!(ActiveTexture, gl::TEXTURE0)?;
         gl!(BindVertexArray, self.vao)?;
 
+        let start_y = y;
         let mut x = x;
         let mut y = y;
 
@@ -191,7 +195,7 @@ impl FontRenderer {
             let character = font.load_glyph(c)?;
 
             let xpos = x + character.bearing.x * scale;
-            let ypos = y - (character.texture.height() as f32 - character.bearing.y) * scale;
+            let ypos = start_y + y - (character.texture.height() as f32) * scale + character.origin_y;
 
             let w = character.texture.width() as f32 * scale;
 
@@ -201,27 +205,27 @@ impl FontRenderer {
                 xpos,
                 ypos + h,
                 0.0,
-                0.0,
+                1.0,
                 xpos,
                 ypos,
                 0.0,
-                1.0,
+                0.0,
                 xpos + w,
                 ypos,
                 1.0,
-                1.0,
+                0.0,
                 xpos,
                 ypos + h,
                 0.0,
-                0.0,
+                1.0,
                 xpos + w,
                 ypos,
                 1.0,
-                1.0,
+                0.0,
                 xpos + w,
                 ypos + h,
                 1.0,
-                0.0,
+                1.0,
             ];
 
             // Set blending.
