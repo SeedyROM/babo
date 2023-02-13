@@ -38,7 +38,7 @@ impl TryFrom<&GlyphSlot> for Character {
             gl::LINEAR,
         )?;
         let bearing = Vector2::new(slot.bitmap_left() as f32, slot.bitmap_top() as f32);
-        let advance = slot.advance().x as f32 / 64.0;
+        let advance = slot.advance().x as f32;
 
         Ok(Self {
             texture,
@@ -75,10 +75,18 @@ impl Font {
 
     pub fn load_glyph(&mut self, c: char) -> Result<&Character, Box<dyn std::error::Error>> {
         if !self.glyphs.contains_key(&c) {
+            // Set the pixel store since we're loading a monochrome bitmap
+            gl!(PixelStorei, gl::UNPACK_ALIGNMENT, 1)?;
+
+            // Load the glyph
             self.face
                 .load_char(c as usize, freetype::face::LoadFlag::RENDER)?;
+
+            // Convert the glyph to a character
             let slot = self.face.glyph();
             let character = Character::try_from(slot)?;
+
+            // Insert the character into the map
             self.glyphs.insert(c, character);
         }
 
@@ -173,8 +181,8 @@ impl FontRenderer {
             &Orthographic3::new(0.0, 1280.0, 720.0, 0.0, -1.0, 1.0).into_inner(),
         )?;
 
-        gl!(ActiveTexture, gl::TEXTURE0);
-        gl!(BindVertexArray, self.vao);
+        gl!(ActiveTexture, gl::TEXTURE0)?;
+        gl!(BindVertexArray, self.vao)?;
 
         let mut x = x;
         let mut y = y;
@@ -216,13 +224,17 @@ impl FontRenderer {
                 0.0,
             ];
 
+            // Set blending.
+            gl!(Enable, gl::BLEND)?;
+            gl!(BlendFunc, gl::SRC_ALPHA, gl::ONE_MINUS_SRC_ALPHA)?;
+
             gl!(BindTexture, gl::TEXTURE_2D, character.texture.id())?;
             gl!(BindBuffer, gl::ARRAY_BUFFER, self.vbo)?;
             gl!(
                 BufferSubData,
                 gl::ARRAY_BUFFER,
                 0,
-                (6 * 4 * std::mem::size_of::<f32>()) as isize,
+                vertices.len() as isize * std::mem::size_of::<f32>() as isize,
                 vertices.as_ptr() as *const std::ffi::c_void,
             )?;
             gl!(BindBuffer, gl::ARRAY_BUFFER, 0)?;

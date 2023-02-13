@@ -97,9 +97,9 @@ fn main() {
         font_renderer
             .draw(
                 &mut font,
-                "hello",
-                10.0,
-                10.0,
+                "Welcome to Babo Engine!",
+                32.0,
+                32.0,
                 1.0,
                 &Vector3::new(1.0, 1.0, 1.0),
             )
