@@ -45,7 +45,7 @@ macro_rules! gl {
             let err = gl::GetError();
             if err != gl::NO_ERROR {
                 let reason = gl_error_string(err);
-                Err(GlError { method: "$func".to_string(), code: err, message: reason.to_string() })
+                Err(GlError { method: stringify!($func).to_string(), code: err, message: reason.to_string() })
             } else {
                 Ok(result)
             }
@@ -59,7 +59,7 @@ macro_rules! gl {
             let err = gl::GetError();
             if err != gl::NO_ERROR {
                 let reason = gl_error_string(err);
-                Err(GlError { method: "$func".to_string(), code: err, message: reason.to_string() })
+                Err(GlError { method: stringify!($func).to_string(), code: err, message: reason.to_string() })
             } else {
                 Ok(result)
             }

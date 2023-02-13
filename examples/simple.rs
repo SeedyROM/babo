@@ -2,7 +2,8 @@ use nalgebra::{Vector2, Vector3};
 use sdl2::{event::Event, keyboard::Keycode};
 
 use babo::{
-    Camera, SpriteRenderer, SpriteRendererTrait, Texture, TextureTrait, Window, WindowTrait,
+    Camera, FontRenderer, SpriteRenderer, SpriteRendererTrait, Texture, TextureTrait, Window,
+    WindowTrait,
 };
 
 fn main() {
@@ -11,6 +12,11 @@ fn main() {
     let mut camera = Camera::from(&window);
 
     let sprite_renderer = SpriteRenderer::new().unwrap();
+    let mut font_renderer = FontRenderer::new().unwrap();
+
+    let mut font = font_renderer
+        .load_font("./assets/fonts/blue-ocean.ttf", 32)
+        .unwrap();
 
     let texture = Texture::from_file("./assets/textures/awesome.png").unwrap();
 
@@ -83,6 +89,18 @@ fn main() {
                 &position,
                 &Vector2::new(babo_texture.width() as f32, babo_texture.height() as f32),
                 rotation,
+                &Vector3::new(1.0, 1.0, 1.0),
+            )
+            .unwrap();
+
+        // Render the text with the camera.
+        font_renderer
+            .draw(
+                &mut font,
+                "hello",
+                10.0,
+                10.0,
+                1.0,
                 &Vector3::new(1.0, 1.0, 1.0),
             )
             .unwrap();

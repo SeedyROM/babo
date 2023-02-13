@@ -33,69 +33,70 @@ impl Default for Texture {
 }
 
 impl Texture {
-    // pub fn new(
-    //     width: u32,
-    //     height: u32,
-    //     internal_format: u32,
-    //     image_format: u32,
-    //     wrap_s: u32,
-    //     wrap_t: u32,
-    //     filter_min: u32,
-    //     filter_max: u32,
-    // ) -> Result<Self, Box<dyn std::error::Error>> {
-    //     let mut id = 0;
-    //     gl!(GenTextures, 1, &mut id)?;
-    //     gl!(BindTexture, gl::TEXTURE_2D, id)?;
-    //     gl!(
-    //         TexImage2D,
-    //         gl::TEXTURE_2D,
-    //         0,
-    //         internal_format as i32,
-    //         width as i32,
-    //         height as i32,
-    //         0,
-    //         image_format,
-    //         gl::UNSIGNED_BYTE,
-    //         std::ptr::null(),
-    //     )?;
-    //     gl!(
-    //         TexParameteri,
-    //         gl::TEXTURE_2D,
-    //         gl::TEXTURE_WRAP_S,
-    //         wrap_s as i32
-    //     )?;
-    //     gl!(
-    //         TexParameteri,
-    //         gl::TEXTURE_2D,
-    //         gl::TEXTURE_WRAP_T,
-    //         wrap_t as i32
-    //     )?;
-    //     gl!(
-    //         TexParameteri,
-    //         gl::TEXTURE_2D,
-    //         gl::TEXTURE_MIN_FILTER,
-    //         filter_min as i32
-    //     )?;
-    //     gl!(
-    //         TexParameteri,
-    //         gl::TEXTURE_2D,
-    //         gl::TEXTURE_MAG_FILTER,
-    //         filter_max as i32
-    //     )?;
-    //     gl!(BindTexture, gl::TEXTURE_2D, 0)?;
+    pub fn new(
+        data: &[u8],
+        width: u32,
+        height: u32,
+        internal_format: u32,
+        image_format: u32,
+        wrap_s: u32,
+        wrap_t: u32,
+        filter_min: u32,
+        filter_max: u32,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
+        let mut id = 0;
+        gl!(GenTextures, 1, &mut id)?;
+        gl!(BindTexture, gl::TEXTURE_2D, id)?;
+        gl!(
+            TexImage2D,
+            gl::TEXTURE_2D,
+            0,
+            internal_format as i32,
+            width as i32,
+            height as i32,
+            0,
+            image_format,
+            gl::UNSIGNED_BYTE,
+            data.as_ptr() as *const _,
+        )?;
+        gl!(
+            TexParameteri,
+            gl::TEXTURE_2D,
+            gl::TEXTURE_WRAP_S,
+            wrap_s as i32
+        )?;
+        gl!(
+            TexParameteri,
+            gl::TEXTURE_2D,
+            gl::TEXTURE_WRAP_T,
+            wrap_t as i32
+        )?;
+        gl!(
+            TexParameteri,
+            gl::TEXTURE_2D,
+            gl::TEXTURE_MIN_FILTER,
+            filter_min as i32
+        )?;
+        gl!(
+            TexParameteri,
+            gl::TEXTURE_2D,
+            gl::TEXTURE_MAG_FILTER,
+            filter_max as i32
+        )?;
+        gl!(BindTexture, gl::TEXTURE_2D, 0)?;
 
-    //     Ok(Texture {
-    //         id,
-    //         width,
-    //         height,
-    //         internal_format,
-    //         image_format,
-    //         wrap_s,
-    //         wrap_t,
-    //         filter_min,
-    //         filter_max,
-    //     })
-    // }
+        Ok(Texture {
+            id,
+            width,
+            height,
+            internal_format,
+            image_format,
+            wrap_s,
+            wrap_t,
+            filter_min,
+            filter_max,
+        })
+    }
 
     pub fn generate_mipmaps(&self) {
         gl!(BindTexture, gl::TEXTURE_2D, self.id);
