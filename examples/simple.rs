@@ -1,4 +1,4 @@
-use nalgebra::{Vector2, Vector3};
+use nalgebra::{Matrix4, Vector2, Vector3};
 use sdl2::{event::Event, keyboard::Keycode};
 
 use babo::{
@@ -98,9 +98,11 @@ fn main() {
             .draw(
                 &mut font,
                 "Welcome to Babo Engine!",
-                32.0,
-                32.0,
-                1.0,
+                &camera.projection(),
+                &Matrix4::identity(),
+                &Vector3::new(32.0, 32.0, 0.0),
+                &Vector2::new(1.0, 1.0),
+                rotation,
                 &Vector3::new(1.0, 1.0, 1.0),
             )
             .unwrap();

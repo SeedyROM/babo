@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use freetype::{Face, GlyphSlot, Library};
-use nalgebra::{Orthographic3, Vector2, Vector3};
+use nalgebra::{Matrix4, Orthographic3, Vector2, Vector3};
 
 use crate::{gl, Shader, ShaderProgram, ShaderType, Texture};
 
@@ -18,7 +18,7 @@ pub struct Character {
     pub texture: Texture,
     pub bearing: Vector2<f32>,
     pub advance: f32,
-    pub origin_y: f32
+    pub origin_y: f32,
 }
 
 impl TryFrom<&GlyphSlot> for Character {
@@ -46,7 +46,7 @@ impl TryFrom<&GlyphSlot> for Character {
             texture,
             bearing,
             advance,
-            origin_y
+            origin_y,
         })
     }
 }
@@ -170,36 +170,42 @@ impl FontRenderer {
         &mut self,
         font: &mut Font,
         text: &str,
-        x: f32,
-        y: f32,
-        scale: f32,
+        projection: &Matrix4<f32>,
+        view: &Matrix4<f32>,
+        position: &Vector3<f32>,
+        scale: &Vector2<f32>,
+        rotation: f32,
         color: &Vector3<f32>,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        self.shader.use_program();
+        let model = Matrix4::new_translation(position)
+            * Matrix4::new_rotation(Vector3::z() * rotation.to_radians());
+        // * Matrix4::new_nonuniform_scaling(&Vector3::new(scale.x, scale.y, 1.0));
 
+        let transform = projection * view * model;
+
+        // Setup the shader uniforms
+        self.shader.use_program();
         self.shader
             .set_uniform_3f("textColor", (color.x, color.y, color.z))?;
-        self.shader.set_uniform_mat4(
-            "transform",
-            &Orthographic3::new(0.0, 1280.0, 720.0, 0.0, -1.0, 1.0).into_inner(),
-        )?;
+        self.shader.set_uniform_mat4("transform", &transform)?;
 
+        // Bind the texture and VAO
         gl!(ActiveTexture, gl::TEXTURE0)?;
         gl!(BindVertexArray, self.vao)?;
 
-        let start_y = y;
-        let mut x = x;
-        let mut y = y;
+        let start_y = position.y;
+        let mut x = position.x;
+        let mut y = position.y;
 
         for c in text.chars() {
             let character = font.load_glyph(c)?;
 
-            let xpos = x + character.bearing.x * scale;
-            let ypos = start_y + y - (character.texture.height() as f32) * scale + character.origin_y;
+            let xpos = x + character.bearing.x;
+            let ypos = start_y + y - (character.texture.height() as f32) + character.origin_y;
 
-            let w = character.texture.width() as f32 * scale;
+            let w = character.texture.width() as f32;
 
-            let h = character.texture.height() as f32 * scale;
+            let h = character.texture.height() as f32;
 
             let vertices: [f32; 6 * 4] = [
                 xpos,
@@ -244,10 +250,10 @@ impl FontRenderer {
             gl!(BindBuffer, gl::ARRAY_BUFFER, 0)?;
             gl!(DrawArrays, gl::TRIANGLES, 0, 6)?;
 
-            x += (character.advance as u32 >> 6) as f32 * scale;
+            x += (character.advance as u32 >> 6) as f32;
             if c == '\n' {
                 x = 0.0;
-                y += character.texture.height() as f32 * scale;
+                y += character.texture.height() as f32;
             }
         }
 
